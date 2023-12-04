@@ -1,0 +1,65 @@
+---
+title: "final"
+output: html_document
+date: "2023-11-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
+
+
+library(rvest)
+library(plyr)
+library(ggiraph)
+library(RColorBrewer)
+library(wbstats)
+library(readxl)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(countrycode)
+library(data.table)
+library(ISOcodes)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggrepel)
+
+
+```
+
+```{r}
+
+iso_codes = ISO_3166_1
+iso_codes = select(iso_codes, c(Alpha_3, Name))
+
+##looking at cumulative mortality rates in the most recent year
+selectdata = read.csv("selectdata.csv")
+
+cumdata = aggregate(selectdata$FactValueNumeric, list(selectdata$Location), FUN = sum)
+colnames(cumdata)[colnames(cumdata) == "x"] <- "Deaths"
+colnames(cumdata)[colnames(cumdata) == "Group.1"] <- "Name"
+as.data.frame(cumdata)
+
+
+cumdata_with_iso = left_join(cumdata, iso_codes, by = "Name")
+colnames(cumdata_with_iso)[colnames(cumdata_with_iso) == "Alpha_3"] = "iso_a3"
+
+world = ne_countries(scale = "medium", returnclass = "sf")
+
+worlda = world %>%
+  select(geometry, iso_a3) 
+
+
+cumdata_world = left_join(cumdata_with_iso, worlda, by = "iso_a3") 
+
+  
+world %>%
+  filter(`admin` != "Antarctica") %>%
+  ggplot() +
+  geom_sf(cumdata_world, mapping = aes(fill = Deaths, geometry = geometry)) +
+  theme_minimal() 
+
+```

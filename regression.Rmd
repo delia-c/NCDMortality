@@ -1,0 +1,72 @@
+---
+title: "logical"
+output: html_document
+date: "2023-11-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
+
+
+library(rvest)
+library(plyr)
+library(ggiraph)
+library(RColorBrewer)
+library(wbstats)
+library(readxl)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(countrycode)
+library(data.table)
+library(ISOcodes)
+library(gtsummary)
+library(faraway)
+
+```
+
+```{r}
+##This is the file that includes the regression analyses 
+
+##Import data 
+regressiondata = read.csv("sexdisease.csv", stringsAsFactors = TRUE)%>%
+  select(`ParentLocation`, `Location`, `Period`, `Dim2`, `Dim1`, `FactValueNumeric`)
+as.data.frame(regressiondata)
+
+
+
+##Only looking at 2016 and only looking at cumulative sex data
+diseases2016 = filter(regressiondata, regressiondata$Period == "2016") 
+diseases2016 = filter(diseases2016, diseases2016$Dim1 == "Both sexes")
+colnames(diseases2016)[colnames(diseases2016) == "Location"] <- "Name"
+
+
+##Import the dataframe with all variables from dataset prep.Rmd
+
+allvariables = read.csv("allvariables.csv", stringsAsFactors = TRUE)
+
+##Combine
+diseases = left_join(diseases2016, allvariables, by = "Name")
+diseases = as_tibble(diseases) 
+
+
+```
+
+```{r}
+
+
+lmod = lm(FactValueNumeric ~ ParentLocation.x + Dim2 + PercentObesityCrude + PercentAlcoholConsumers + MeanSystolic + MeanCholesterol + HDI.rank...1 + Life.expectancy.at.birth, diseases)
+
+lmod %>%
+  tbl_regression() %>%
+  bold_labels() %>%
+  bold_p(t = 0.05)
+
+plot(lmod)
+halfnorm(hatvalues(lmod), ylab = "Sorted leverages")
+
+##This data shows that the model does not have a good fit probably due to the high levels of complexity of noncommunicable disease mortality 
+
+```

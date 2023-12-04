@@ -1,0 +1,75 @@
+---
+title: "final dataset preparation"
+output: html_document
+date: "2023-11-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
+
+
+library(rvest)
+library(plyr)
+library(ggiraph)
+library(RColorBrewer)
+library(wbstats)
+library(readxl)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(countrycode)
+library(data.table)
+library(ISOcodes)
+
+
+```
+```{r}
+
+##reading in all the databases that I need to account for the main risk factors
+##this data is only used to analyze overall populations (not sex specific), blood pressure does not have cumulative data, so mean of male and female is taken
+##Data is from year that is common (2016) except blood pressure which does not have data from that year so use 2015 data because it is the closest data available 
+##so filter appropriately 
+
+
+obesity = read_csv("adult obesity.csv", col_select = c(Name, Period, Dim1, PercentObesityCrude, ParentLocation))
+obesity = obesity %>%
+  filter(Dim1 == "Both sexes") %>%
+  filter(Period == "2016") 
+obesity = as.data.frame(obesity)
+
+alcohol = read_csv("alcohol.csv", col_select = c(ParentLocation, Name, Period, Dim1, PercentAlcoholConsumers))
+alcohol = alcohol %>%
+  filter(Dim1 == "Both sexes") %>%
+  filter(Period == "2016")
+alcohol = as.data.frame(alcohol)
+
+blood_pressure = read_csv("bp.csv", col_select = c(Name, Period, ParentLocation, Dim1, MeanSystolic))
+blood_pressure = blood_pressure %>%
+  filter(Dim1 == "Both sexes")
+blood_pressure = as.data.frame(blood_pressure)
+
+cholesterol = read_csv("cholesterol.csv", col_select = c(Name, Period, ParentLocation, Dim1, MeanCholesterol))
+cholesterol = cholesterol %>%
+  filter(Dim1 == "Both sexes") %>%
+  filter(Period == "2016")
+cholesterol = as.data.frame(cholesterol)
+
+hdr = read_excel("HDR21-22_Statistical_Annex_HDI.xlsx")
+hdr = as.data.frame(hdr)
+hdr = hdr[c(1, 2, 3, 5)]
+
+
+##Create main tibble with all of the considered risk factors 
+
+allvariables = list(obesity, alcohol, blood_pressure, cholesterol, hdr)
+allvariables %>% reduce(full_join, by = "Name")
+allvariables = as.data.frame(allvariables)
+
+
+allvariables = subset(allvariables, select = -c(Period, Dim1, `ParentLocation.1`, `Name.1`, `Period.1`, `Dim1.1`, `Name.2`, `Period.2`, `ParentLocation.2`, `Dim1.2`, `Name.3`, `Period.3`, `ParentLocation.3`, `Dim1.3`, `Name.4`))
+
+write.csv(allvariables, "allvariables.csv")
+
+```
