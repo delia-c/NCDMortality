@@ -57,15 +57,26 @@ diseases = as_tibble(diseases)
 ```{r}
 
 
-lmod = lm(FactValueNumeric ~ ParentLocation.x + Dim2 + PercentObesityCrude + PercentAlcoholConsumers + MeanSystolic + MeanCholesterol + HDI.rank...1 + Life.expectancy.at.birth, diseases)
+lmod = glm(cbind(FactValueNumeric, Name) ~ ParentLocation.x + Dim2 + PercentObesityCrude + PercentAlcoholConsumers + MeanSystolic + MeanCholesterol + HDI.rank...1 + Life.expectancy.at.birth, family = binomial, diseases)
 
 lmod %>%
   tbl_regression() %>%
   bold_labels() %>%
   bold_p(t = 0.05)
 
+
+pchisq(as.numeric(lmod$deviance), as.numeric(lmod$df.residual), lower = FALSE)
+
 plot(lmod)
 halfnorm(hatvalues(lmod), ylab = "Sorted leverages")
+
+diseases %>%
+  slice(c(707, 2)) %>%
+  print()
+## Barbados - cardiovascular disease and India - respiratory disease are extreme outlier 
+
+drop = drop1(lmod, test = "Chi")
+dropsort = drop[order(drop$`Pr(>Chi)`),]
 
 ##This data shows that the model does not have a good fit probably due to the high levels of complexity of noncommunicable disease mortality 
 
