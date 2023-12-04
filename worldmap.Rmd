@@ -26,7 +26,7 @@ library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(ggrepel)
-
+library(wesanderson)
 
 ```
 
@@ -43,9 +43,14 @@ colnames(cumdata)[colnames(cumdata) == "x"] <- "Deaths"
 colnames(cumdata)[colnames(cumdata) == "Group.1"] <- "Name"
 as.data.frame(cumdata)
 
+population = read.csv("population.csv")
 
 cumdata_with_iso = left_join(cumdata, iso_codes, by = "Name")
 colnames(cumdata_with_iso)[colnames(cumdata_with_iso) == "Alpha_3"] = "iso_a3"
+cumdataratio = left_join(cumdata_with_iso, population, by = "iso_a3") %>%
+  mutate(ratio = Deaths / 2019)
+
+
 
 world = ne_countries(scale = "medium", returnclass = "sf")
 
@@ -53,13 +58,14 @@ worlda = world %>%
   select(geometry, iso_a3) 
 
 
-cumdata_world = left_join(cumdata_with_iso, worlda, by = "iso_a3") 
+cumdata_world = left_join(cumdataratio, worlda, by = "iso_a3") 
 
   
 world %>%
   filter(`admin` != "Antarctica") %>%
   ggplot() +
-  geom_sf(cumdata_world, mapping = aes(fill = Deaths, geometry = geometry)) +
+  geom_sf(cumdata_world, mapping = aes(fill = ratio, geometry = geometry)) +
+  scale_fill_gradientn(colors = wes_palette("FantasticFox1", 100, type = "continuous")) +
   theme_minimal() 
 
 ```
