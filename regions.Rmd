@@ -1,0 +1,378 @@
+---
+title: "regions"
+date: "2023-11-10"
+---
+
+```{r setup, include=FALSE}
+
+rm(list=ls())
+
+library(rvest)
+library(plyr)
+library(ggiraph)
+library(RColorBrewer)
+library(wbstats)
+library(readxl)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(countrycode)
+library(data.table)
+
+```
+
+```{r}
+##Setting up variables and data organization
+
+
+##read in database and select only the columns that I need
+sandd = read.csv("sexdisease.csv")%>%
+  select(`ParentLocation`, `Location`, `Period`, `Dim2`, `Dim1`, `FactValueNumeric`)
+as.data.frame(sandd)
+
+## This section does not look at sex differences, so only consider rows where the data is for both sexes 
+regioncum = filter(sandd, sandd$Dim1 == "Both sexes") 
+
+```
+
+```{r}
+##Looking only at countries in Africa 
+af = filter(regioncum, regioncum$ParentLocation == "Africa")
+afc = aggregate(af$FactValueNumeric, list(af$Period), FUN = sum)
+colnames(afc)[colnames(afc) == "x"] <- "Africa"
+
+##Sorting and aggregating based on each disease 
+afcard = filter(af, af$Dim2 == "Cardiovascular diseases")
+afcard = aggregate(afcard$FactValueNumeric, list(afcard$Period), FUN = sum)
+colnames(afcard)[colnames(afcard) == "x"] <- "Cardiovascular Disease, Africa"
+afdia = filter(af, af$Dim2 == "Diabetes mellitus")
+afdia = aggregate(afdia$FactValueNumeric, list(afdia$Period), FUN = sum)
+colnames(afdia)[colnames(afdia) == "x"] <- "Diabetes mellitus, Africa"
+afneo = filter(af, af$Dim2 == "Malignant neoplasms")
+afneo = aggregate(afneo$FactValueNumeric, list(afneo$Period), FUN = sum)
+colnames(afneo)[colnames(afneo) == "x"] <- "Malignant neoplasms, Africa"
+afresp = filter(af, af$Dim2 == "Respiratory diseases")
+afresp = aggregate(afresp$FactValueNumeric, list(afresp$Period), FUN = sum)
+colnames(afresp)[colnames(afresp) == "x"] <- "Respiratory diseases, Africa"
+
+
+
+##Looking only at countries in the Americas
+am = filter(regioncum, regioncum$ParentLocation == "Americas")
+amc = aggregate(am$FactValueNumeric, list(am$Period), FUN = sum)
+colnames(amc)[colnames(amc) == "x"] <- "Americas"
+
+##Sorting and aggregating based on each disease 
+amcard = filter(am, am$Dim2 == "Cardiovascular diseases")
+amcard = aggregate(amcard$FactValueNumeric, list(amcard$Period), FUN = sum)
+colnames(amcard)[colnames(amcard) == "x"] <- "Cardiovascular diseases, Americas"
+amdia = filter(am, am$Dim2 == "Diabetes mellitus")
+amdia = aggregate(amdia$FactValueNumeric, list(amdia$Period), FUN = sum)
+colnames(amdia)[colnames(amdia) == "x"] <- "Diabetes mellitus, Americas"
+amneo = filter(am, am$Dim2 == "Malignant neoplasms")
+amneo = aggregate(amneo$FactValueNumeric, list(amneo$Period), FUN = sum)
+colnames(amneo)[colnames(amneo) == "x"] <- "Malignant neoplasms, Americas"
+amresp = filter(am, am$Dim2 == "Respiratory diseases")
+amresp = aggregate(amresp$FactValueNumeric, list(amresp$Period), FUN = sum)
+colnames(amresp)[colnames(amresp) == "x"] <- "Respiratory diseases, Americas"
+
+##Looking at countries in Eastern Mediterranean region
+em = filter(regioncum, regioncum$ParentLocation == "Eastern Mediterranean")
+emc = aggregate(em$FactValueNumeric, list(em$Period), FUN = sum)
+colnames(emc)[colnames(emc) == "x"] <- "Eastern Mediterranean"
+
+##Sorting and aggregating based on each disease 
+emcard = filter(em, em$Dim2 == "Cardiovascular diseases")
+emcard = aggregate(emcard$FactValueNumeric, list(emcard$Period), FUN = sum)
+colnames(emcard)[colnames(emcard) == "x"] <- "Cardiovascular diseases, Eastern Med"
+emdia = filter(em, em$Dim2 == "Diabetes mellitus")
+emdia = aggregate(emdia$FactValueNumeric, list(emdia$Period), FUN = sum)
+colnames(emdia)[colnames(emdia) == "x"] <- "Diabetes mellitus, Eastern Med"
+emneo = filter(em, em$Dim2 == "Malignant neoplasms")
+emneo = aggregate(emneo$FactValueNumeric, list(emneo$Period), FUN = sum)
+colnames(emneo)[colnames(emneo) == "x"] <- "Malignant neoplasms, Eastern Med"
+emresp = filter(em, em$Dim2 == "Respiratory diseases")
+emresp = aggregate(emresp$FactValueNumeric, list(emresp$Period), FUN = sum)
+colnames(emresp)[colnames(emresp) == "x"] <- "Respiratory diseases, Eastern Med"
+
+
+##Looking at countries in European region
+eu = filter(regioncum, regioncum$ParentLocation == "Europe")
+euc = aggregate(eu$FactValueNumeric, list(eu$Period), FUN = sum)
+colnames(euc)[colnames(euc) == "x"] <- "Europe"
+
+##Sorting and aggregating based on each disease 
+eucard = filter(eu, eu$Dim2 == "Cardiovascular diseases")
+eucard = aggregate(eucard$FactValueNumeric, list(eucard$Period), FUN = sum)
+colnames(eucard)[colnames(eucard) == "x"] <- "Cardiovascular diseases, Europe"
+eudia = filter(eu, eu$Dim2 == "Diabetes mellitus")
+eudia = aggregate(eudia$FactValueNumeric, list(eudia$Period), FUN = sum)
+colnames(eudia)[colnames(eudia) == "x"] <- "Diabetes mellitus, Europe"
+euneo = filter(eu, eu$Dim2 == "Malignant neoplasms")
+euneo = aggregate(euneo$FactValueNumeric, list(euneo$Period), FUN = sum)
+colnames(euneo)[colnames(euneo) == "x"] <- "Malignant neoplasms, Europe"
+euresp = filter(eu, eu$Dim2 == "Respiratory diseases")
+euresp = aggregate(euresp$FactValueNumeric, list(euresp$Period), FUN = sum)
+colnames(euresp)[colnames(euresp) == "x"] <- "Respiratory diseases, Europe"
+
+
+##Looking at countries in South-East Asia
+sea = filter(regioncum, regioncum$ParentLocation == "South-East Asia")
+seac = aggregate(sea$FactValueNumeric, list(sea$Period), FUN = sum)
+colnames(seac)[colnames(seac) == "x"] <- "South-East Asia"
+
+##Sorting and aggregating based on each disease 
+seacard = filter(sea, sea$Dim2 == "Cardiovascular diseases")
+seacard = aggregate(seacard$FactValueNumeric, list(seacard$Period), FUN = sum)
+colnames(seacard)[colnames(seacard) == "x"] <- "Cardiovascular diseases, SE Asia"
+seadia = filter(sea, sea$Dim2 == "Diabetes mellitus")
+seadia = aggregate(seadia$FactValueNumeric, list(seadia$Period), FUN = sum)
+colnames(seadia)[colnames(seadia) == "x"] <- "Diabetes mellitus, SE Asia"
+seaneo = filter(sea, sea$Dim2 == "Malignant neoplasms")
+seaneo = aggregate(seaneo$FactValueNumeric, list(seaneo$Period), FUN = sum)
+colnames(seaneo)[colnames(seaneo) == "x"] <- "Malignant neoplasms, SE Asia"
+searesp = filter(sea, sea$Dim2 == "Respiratory diseases")
+searesp = aggregate(searesp$FactValueNumeric, list(searesp$Period), FUN = sum)
+colnames(searesp)[colnames(searesp) == "x"] <- "Respiratory diseases, SE Asia"
+
+
+##Looking at countries in Western Pacific 
+wp = filter(regioncum, regioncum$ParentLocation == "Western Pacific")
+wpc = aggregate(wp$FactValueNumeric, list(wp$Period), FUN = sum)
+colnames(wpc)[colnames(wpc) == "x"] <- "Western Pacific"
+
+##Sorting and aggregating based on each disease 
+wpcard = filter(wp, wp$Dim2 == "Cardiovascular diseases")
+wpcard = aggregate(wpcard$FactValueNumeric, list(wpcard$Period), FUN = sum)
+colnames(wpcard)[colnames(wpcard) == "x"] <- "Cardiovascular diseases, West Pacific"
+wpdia = filter(wp, wp$Dim2 == "Diabetes mellitus")
+wpdia = aggregate(wpdia$FactValueNumeric, list(wpdia$Period), FUN = sum)
+colnames(wpdia)[colnames(wpdia) == "x"] <- "Diabetes mellitus, West Pacific"
+wpneo = filter(wp, wp$Dim2 == "Malignant neoplasms")
+wpneo = aggregate(wpneo$FactValueNumeric, list(wpneo$Period), FUN = sum)
+colnames(wpneo)[colnames(wpneo) == "x"] <- "Malignant neoplasms, West Pacific"
+wpresp = filter(wp, wp$Dim2 == "Respiratory diseases")
+wpresp = aggregate(wpresp$FactValueNumeric, list(wpresp$Period), FUN = sum)
+colnames(wpresp)[colnames(wpresp) == "x"] <- "Respiratory diseases, West Pacific"
+
+
+six = list(afc, amc, euc, emc, seac, wpc)
+six %>% reduce(full_join, by = "Group.1")
+six = as.data.frame(six)
+six = subset(six, select = -c(Group.1.1, Group.1.2, Group.1.3, Group.1.4, Group.1.5))
+
+```
+
+
+```{r}
+##Cumulative Plot
+##Plot comparing each region over time 
+ggplot(six, aes(x = `Group.1`)) +
+geom_line(aes(y = `Africa`, color = "Africa")) +
+  geom_line(aes(y = `Americas`, color = "Americas")) +
+  geom_line(aes(y = `Eastern.Mediterranean`, color = "Eastern.Mediterranean")) +
+  geom_line(aes(y = `Europe`, color = "Europe")) +
+  geom_line(aes(y =`South.East.Asia`, color = "South.East.Asia")) +
+  geom_line(aes(y = `Western.Pacific`, color = "Western.Pacific")) +  
+  geom_point(aes(y = `Africa`, color = "Africa")) +
+  geom_point(aes(y = `Americas`, color = "Americas")) +
+  geom_point(aes(y = `Eastern.Mediterranean`, color = "Eastern.Mediterranean")) +
+  geom_point(aes(y = `Europe`, color = "Europe")) +
+  geom_point(aes(y =`South.East.Asia`, color = "South.East.Asia")) +
+  geom_point(aes(y = `Western.Pacific`, color = "Western.Pacific")) +  
+  theme_bw() +
+  labs(title = bquote("NCD Mortality by Region Over Time"), x = bquote("Year"), y = bquote("Number of Deaths"))
+```
+
+```{r}
+## Plots of causes in each region 
+
+##Plot comparing causes of NCD mortality in Africa
+af_list = list(afcard, afdia, afneo, afresp)
+af_list = data.frame(af_list)
+
+ggplot(af_list, aes(x = `Group.1`)) +
+geom_line(aes(y = `Cardiovascular.Disease..Africa`, color = "Cardiovascular disease")) +
+  geom_line(aes(y = `Diabetes.mellitus..Africa`, color = "Diabetes mellitus")) +
+  geom_line(aes(y = `Malignant.neoplasms..Africa`, color = "Malignant neoplasms")) +
+  geom_line(aes(y = `Respiratory.diseases..Africa`, color = "Respiratory disease")) +
+  geom_point(aes(y = `Cardiovascular.Disease..Africa`, color = "Cardiovascular disease")) +
+  geom_point(aes(y = `Diabetes.mellitus..Africa`, color = "Diabetes mellitus")) +
+  geom_point(aes(y = `Malignant.neoplasms..Africa`, color = "Malignant neoplasms")) +
+  geom_point(aes(y = `Respiratory.diseases..Africa`, color = "Respiratory disease")) +
+  theme_bw() +
+ labs(title = bquote("Africa Region NCD Deaths"), x = bquote("Year"), y = bquote("NCD Mortality")) 
+
+
+##Plot comparing causes of NCD mortality in Americas
+am_list = list(amcard, amdia, amneo, amresp)
+am_list = data.frame(am_list)
+
+ggplot(am_list, aes(x = `Group.1`)) +
+geom_line(aes(y = `Cardiovascular.diseases..Americas`, color = "Cardiovascular disease")) +
+  geom_line(aes(y = `Diabetes.mellitus..Americas`, color = "Diabetes mellitus")) +
+  geom_line(aes(y = `Malignant.neoplasms..Americas`, color = "Malignant neoplasms")) +
+  geom_line(aes(y = `Respiratory.diseases..Americas`, color = "Respiratory disease")) +
+  geom_point(aes(y = `Cardiovascular.diseases..Americas`, color = "Cardiovascular disease")) +
+  geom_point(aes(y = `Diabetes.mellitus..Americas`, color = "Diabetes mellitus")) +
+  geom_point(aes(y = `Malignant.neoplasms..Americas`, color = "Malignant neoplasms")) +
+  geom_point(aes(y = `Respiratory.diseases..Americas`, color = "Respiratory disease")) +
+  theme_bw() +
+ labs(title = bquote("Americas Region NCD Death Rates"), x = bquote("Year"), y = bquote("NCD Mortality")) 
+
+
+##Plot comparing causes of NCD mortality in Eastern Mediterranean
+em_list = list(emcard, emdia, emneo, emresp)
+em_list = data.frame(em_list)
+
+ggplot(em_list, aes(x = `Group.1`)) +
+geom_line(aes(y = `Cardiovascular.diseases..Eastern.Med`, color = "Cardiovascular disease")) +
+  geom_line(aes(y = `Diabetes.mellitus..Eastern.Med`, color = "Diabetes mellitus")) +
+  geom_line(aes(y = `Malignant.neoplasms..Eastern.Med`, color = "Malignant neoplasms")) +
+  geom_line(aes(y = `Respiratory.diseases..Eastern.Med`, color = "Respiratory disease")) +
+  geom_point(aes(y = `Cardiovascular.diseases..Eastern.Med`, color = "Cardiovascular disease")) +
+  geom_point(aes(y = `Diabetes.mellitus..Eastern.Med`, color = "Diabetes mellitus")) +
+  geom_point(aes(y = `Malignant.neoplasms..Eastern.Med`, color = "Malignant neoplasms")) +
+  geom_point(aes(y = `Respiratory.diseases..Eastern.Med`, color = "Respiratory disease")) +
+  theme_bw() +
+ labs(title = bquote("Eastern Mediterranean Region NCD Deaths"), x = bquote("Year"), y = bquote("NCD Mortality")) 
+
+##Plot comparing causes of NCD mortality in Europe
+eu_list = list(eucard, eudia, euneo, euresp)
+eu_list = data.frame(eu_list)
+
+ggplot(eu_list, aes(x = `Group.1`)) +
+geom_line(aes(y  = `Cardiovascular.diseases..Europe`, color = "Cardiovascular disease")) +
+  geom_line(aes(y = `Diabetes.mellitus..Europe`, color = "Diabetes mellitus")) +
+  geom_line(aes(y = `Malignant.neoplasms..Europe`, color = "Malignant neoplasms")) +
+  geom_line(aes(y = `Respiratory.diseases..Europe`, color = "Respiratory disease")) +
+  geom_point(aes(y  = `Cardiovascular.diseases..Europe`, color = "Cardiovascular disease")) +
+  geom_point(aes(y = `Diabetes.mellitus..Europe`, color = "Diabetes mellitus")) +
+  geom_point(aes(y = `Malignant.neoplasms..Europe`, color = "Malignant neoplasms")) +
+  geom_point(aes(y = `Respiratory.diseases..Europe`, color = "Respiratory disease")) +
+  theme_bw() +
+ labs(title = bquote("Europe Region NCD Death Rates"), x = bquote("Year"), y = bquote("NCD Mortality")) 
+
+
+##Plot comparing causes of NCD mortality in South East Asia 
+sea_list = list(seacard, seadia, seaneo, searesp)
+sea_list = data.frame(sea_list)
+
+ggplot(sea_list, aes(x = `Group.1`)) +
+geom_line(aes(y = `Cardiovascular.diseases..SE.Asia`, color = "Cardiovascular disease")) +
+  geom_line(aes(y = `Diabetes.mellitus..SE.Asia`, color = "Diabetes mellitus")) +
+  geom_line(aes(y = `Malignant.neoplasms..SE.Asia`, color = "Malignant neoplasms")) +
+  geom_line(aes(y = `Respiratory.diseases..SE.Asia`, color = "Respiratory disease")) +
+  geom_point(aes(y = `Cardiovascular.diseases..SE.Asia`, color = "Cardiovascular disease")) +
+  geom_point(aes(y = `Diabetes.mellitus..SE.Asia`, color = "Diabetes mellitus")) +
+  geom_point(aes(y = `Malignant.neoplasms..SE.Asia`, color = "Malignant neoplasms")) +
+  geom_point(aes(y = `Respiratory.diseases..SE.Asia`, color = "Respiratory disease")) +
+  theme_bw() +
+ labs(title = bquote("South Eastern Asian Region NCD Death Rates"), x = bquote("Year"), y = bquote("NCD Mortality")) 
+
+##Plot comparing causes of NCD mortality in Western Pacific 
+wp_list = list(wpcard, wpdia, wpneo, wpresp)
+wp_list = data.frame(wp_list)
+
+ggplot(wp_list, aes(x = `Group.1`)) +
+geom_line(aes(y = `Cardiovascular.diseases..West.Pacific`, color = "Cardiovascular disease")) +
+  geom_line(aes(y = `Diabetes.mellitus..West.Pacific`, color = "Diabetes mellitus")) +
+  geom_line(aes(y = `Malignant.neoplasms..West.Pacific`, color = "Malignant neoplasms")) +
+  geom_line(aes(y = `Respiratory.diseases..West.Pacific`, color = "Respiratory disease")) +
+  geom_point(aes(y =`Cardiovascular.diseases..West.Pacific`, color = "Cardiovascular disease")) +
+  geom_point(aes(y = `Diabetes.mellitus..West.Pacific`, color = "Diabetes mellitus")) +
+  geom_point(aes(y = `Malignant.neoplasms..West.Pacific`, color = "Malignant neoplasms")) +
+  geom_point(aes(y = `Respiratory.diseases..West.Pacific`, color = "Respiratory disease")) +
+  theme_bw() +
+ labs(title = bquote("Western Pacific Region NCD Death Rates"), x = bquote("Year"), y = "NCD Mortality") 
+```
+
+```{r}
+##Plots comparing regions looking at each specific disease 
+
+##Plot comparing rates of death from cardiovascular disease by region
+car_list = list(afcard, amcard, emcard, eucard, seacard, wpcard)
+car_list = data.frame(car_list)
+
+ggplot(car_list, aes(x = `Group.1`)) +
+geom_line(aes(y = `Cardiovascular.Disease..Africa`, color = "Africa")) +
+  geom_point(aes(y = `Cardiovascular.Disease..Africa`, color = "Africa")) +
+  geom_line(aes(y = `Cardiovascular.diseases..Americas`, color = "Americas")) +
+  geom_point(aes(y = `Cardiovascular.diseases..Americas`, color = "Americas")) +
+  geom_line(aes(y = `Cardiovascular.diseases..Eastern.Med`, color = "Eastern Mediterranean")) +
+  geom_point(aes(y = `Cardiovascular.diseases..Eastern.Med`, color = "Eastern Mediterranean")) +
+  geom_line(aes(y = `Cardiovascular.diseases..Europe`, color = "Europe")) +
+  geom_point(aes(y = `Cardiovascular.diseases..Europe`, color = "Europe")) +
+  geom_line(aes(y =`Cardiovascular.diseases..SE.Asia`, color = "South-East Asia")) +
+  geom_point(aes(y =`Cardiovascular.diseases..SE.Asia`, color = "South-East Asia")) +
+  geom_line(aes(y =`Cardiovascular.diseases..West.Pacific`, color = "Western Pacific")) +
+  geom_point(aes(y =`Cardiovascular.diseases..West.Pacific`, color = "Western Pacific")) +
+ labs(title = bquote("Region Comparison by Cardiovascular Disease"), x = bquote("Year"), y = bquote("Cardiovascular Associated Deaths")) +
+  theme_bw()
+
+  
+#Plot comparing rates of death from diabetes mellitus by region 
+dia_list = list(afdia, amdia, emdia, eudia, seadia, wpdia)
+dia_list = data.frame(dia_list)
+
+
+ggplot(dia_list, aes(x = `Group.1`)) +
+geom_line(aes(y = `Diabetes.mellitus..Africa`, color = "Africa")) +
+  geom_point(aes(y = `Diabetes.mellitus..Africa`, color = "Africa")) +
+  geom_line(aes(y = `Diabetes.mellitus..Americas`, color = "Americas")) +
+  geom_point(aes(y = `Diabetes.mellitus..Americas`, color = "Americas")) +
+  geom_line(aes(y = `Diabetes.mellitus..Eastern.Med`, color = "Eastern Mediterranean")) +
+  geom_point(aes(y = `Diabetes.mellitus..Eastern.Med`, color = "Eastern mediterranean")) +
+  geom_line(aes(y = `Diabetes.mellitus..Europe`, color = "Europe")) +
+  geom_point(aes(y = `Diabetes.mellitus..Europe`, color = "Europe")) +
+  geom_line(aes(y =`Diabetes.mellitus..SE.Asia`, color = "South-East Asia")) +
+  geom_point(aes(y = `Diabetes.mellitus..SE.Asia`, color = "South-East Asia")) +
+  geom_line(aes(y = `Diabetes.mellitus..West.Pacific`, color = "Western Pacific")) +
+  geom_point(aes(y = `Diabetes.mellitus..West.Pacific`, color = "Western Pacific")) +
+  theme_bw() +
+ labs(title = bquote("Region Comparison by Diabetes Mellitus"), x = bquote("Year"), y = bquote("Diabetes Associated Deaths")) 
+
+##Plot comparing rates of death from malignant neoplasms by region
+neo_list = list(afneo, amneo, emneo, euneo, seaneo, wpneo)
+neo_list = data.frame(neo_list)
+
+ggplot(neo_list, aes(x = `Group.1`)) + 
+  geom_line(aes(y = `Malignant.neoplasms..Africa`, color = "Africa")) +
+  geom_point(aes(y = `Malignant.neoplasms..Africa`, color = "Africa")) +
+  geom_line(aes(y = `Malignant.neoplasms..Americas`, color = "Americas")) +
+  geom_point(aes(y = `Malignant.neoplasms..Americas`, color = "Americas")) +
+  geom_line(aes(y = `Malignant.neoplasms..Eastern.Med`, color = "Eastern Mediterranean")) +
+  geom_point(aes(y = `Malignant.neoplasms..Eastern.Med`, color = "Eastern Mediterranean")) +
+  geom_line(aes(y = `Malignant.neoplasms..Europe`, color = "Europe")) +
+  geom_point(aes(y = `Malignant.neoplasms..Europe`, color = "Europe")) +
+  geom_line(aes(y = `Malignant.neoplasms..SE.Asia`, color = "South-East Asia")) +
+  geom_point(aes(y = `Malignant.neoplasms..SE.Asia`, color = "South-East Asia")) +
+  geom_line(aes(y = `Malignant.neoplasms..West.Pacific`, color = "Western Pacific")) +
+  geom_point(aes(y = `Malignant.neoplasms..West.Pacific`, color = "Western Pacific")) +
+  theme_bw() +
+ labs(title = bquote("Region Comparison by Malignant Neoplasm"), x = bquote("Year"), y = bquote("Cancer Associated Deaths")) 
+
+
+##Plots comparing rates of death from respiratory disease by region
+resp_list = list(afresp, amresp, emresp, euresp, searesp, wpresp)
+resp_list = data.frame(resp_list)
+
+ggplot(resp_list, aes(x = `Group.1`)) +
+geom_line(aes(y = `Respiratory.diseases..Africa`, color = "Africa")) +
+  geom_point(aes(y = `Respiratory.diseases..Africa`, color = "Africa")) +
+  geom_line(aes(y = `Respiratory.diseases..Americas`, color = "Americas")) + 
+  geom_point(aes(y = `Respiratory.diseases..Americas`, color = "Americas")) +
+  geom_line(aes(y = `Respiratory.diseases..Eastern.Med`, color = "Eastern Mediterranean")) +  
+  geom_point(aes(y = `Respiratory.diseases..Eastern.Med`, color = "Eastern Mediterranean")) +
+  geom_line(aes(y = `Respiratory.diseases..Europe`, color = "Europe")) +
+  geom_point(aes(y = `Respiratory.diseases..Europe`, color = "Europe")) +
+  geom_line(aes(y = `Respiratory.diseases..SE.Asia`, color = "South-East Asia")) +
+  geom_point(aes(y = `Respiratory.diseases..SE.Asia`, color = "South-East Asia")) +
+  geom_line(aes(y = `Respiratory.diseases..West.Pacific`, color = "Western Pacific")) +
+  geom_point(aes(y = `Respiratory.diseases..West.Pacific`, color = "Western Pacific")) +
+  theme_bw() +
+ labs(title = bquote("Region Comparison by Respiratory Disease"), x = bquote("Year"), y = bquote("Respiratory Associated Deaths")) 
+
+```
+
+
