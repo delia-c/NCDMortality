@@ -33,7 +33,7 @@ library(ISOcodes)
 ##so filter appropriately 
 
 
-obesity = read_csv("adult obesity.csv", col_select = c(Name, Period, Dim1, PercentObesityCrude, ParentLocation))
+obesity = read_csv("adultobesity.csv", col_select = c(Name, Period, Dim1, PercentObesityCrude, ParentLocation))
 obesity = obesity %>%
   filter(Dim1 == "Both sexes") %>%
   filter(Period == "2016") 
